@@ -38,6 +38,24 @@ export interface ShippingAddress {
   landmark?: string;
 }
 
+export interface SavedAddress {
+  id: string;
+  user_identifier: string;
+  name: string;
+  email: string;
+  phone: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  landmark?: string;
+  is_default: boolean;
+  label: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type PaymentMethod = 'COD' | 'ONLINE';
 export type PaymentStatus = 'pending' | 'paid' | 'failed';
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

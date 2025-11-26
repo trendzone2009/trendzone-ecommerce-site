@@ -1,0 +1,170 @@
+================================================================================
+                    FIX: "Failed to create order" ERROR
+================================================================================
+
+ISSUE: When trying to place an order, you get:
+       {"message":"Failed to create order"}
+
+CAUSE: Supabase Row Level Security (RLS) policies are not configured for
+       public order creation.
+
+SOLUTION: Run one SQL command in Supabase
+
+================================================================================
+                              STEP-BY-STEP FIX
+================================================================================
+
+STEP 1: Open Supabase SQL Editor
+────────────────────────────────────────────────────────────────────────────
+  1. Go to https://supabase.com
+  2. Login to your account
+  3. Open your project: "nzportuamtrburumshvg"
+  4. Click on "SQL Editor" (left sidebar)
+  5. Click "+ New Query" button
+
+STEP 2: Copy the SQL Code
+────────────────────────────────────────────────────────────────────────────
+Copy this entire SQL (it's in the next section):
+
+STEP 3: Paste in Supabase
+────────────────────────────────────────────────────────────────────────────
+  1. Paste the SQL in the SQL Editor
+  2. Click "Run" button (or press Ctrl+Enter)
+  3. Wait for "Success" message
+
+STEP 4: Test Your App
+────────────────────────────────────────────────────────────────────────────
+  1. Refresh your browser: http://localhost:3000
+  2. Add a product to cart
+  3. Go to checkout
+  4. Fill the form with test data:
+     - Name: Test User
+     - Email: test@test.com
+     - Phone: 9876543210
+     - Address: 123 Main Street
+     - City: Delhi
+     - State: Delhi
+     - Pincode: 110001
+  5. Select "Cash on Delivery"
+  6. Click "Place Order"
+  7. You should see confirmation page ✅
+
+================================================================================
+                          SQL CODE TO RUN
+================================================================================
+
+Copy everything between the dashes and paste in Supabase SQL Editor:
+
+────────────────────────────────────────────────────────────────────────────
+-- Enable RLS and create policies for order creation
+
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public can create orders" ON orders;
+CREATE POLICY "Public can create orders"
+  ON orders FOR INSERT
+  WITH CHECK (true);
+
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public can create order items" ON order_items;
+CREATE POLICY "Public can create order items"
+  ON order_items FOR INSERT
+  WITH CHECK (true);
+
+ALTER TABLE product_variants ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public can update variants" ON product_variants;
+CREATE POLICY "Public can update variants"
+  ON product_variants FOR UPDATE
+  USING (true)
+  WITH CHECK (true);
+────────────────────────────────────────────────────────────────────────────
+
+That's it! Just run this SQL and your order creation will work.
+
+================================================================================
+                           VERIFY IT WORKED
+================================================================================
+
+After running the SQL and testing:
+
+1. Go to Supabase Console
+2. Click "orders" table
+3. You should see your test order there with:
+   - order_number: ORD-20251126-00001 (or similar)
+   - customer_name: Test User
+   - total: Amount paid
+
+4. Click "order_items" table
+5. You should see items from your order
+
+If you see these, it worked! ✅
+
+================================================================================
+                          STILL HAVING ISSUES?
+================================================================================
+
+CHECK 1: Verify Supabase Connection
+──────────────────────────────────────────────────────────────────────────
+  • Check .env.local has correct SUPABASE_URL and SUPABASE_ANON_KEY
+  • Make sure they match your project
+
+CHECK 2: Verify Database Tables Exist
+──────────────────────────────────────────────────────────────────────────
+  • Go to Supabase Console
+  • Click "Database" → "Tables"
+  • You should see: orders, order_items, products, product_variants, categories
+
+CHECK 3: Check Server Error Logs
+──────────────────────────────────────────────────────────────────────────
+  • Look at terminal where you ran "npm run dev"
+  • Search for error messages
+  • Common errors:
+    - "relation orders does not exist" → Tables not created
+    - "permission denied" → RLS policy not set
+    - "Invalid JWT" → Wrong Supabase keys
+
+IF STUCK: See TROUBLESHOOT_ORDER_ERROR.md for detailed debugging
+
+================================================================================
+                              SUCCESS! ✅
+================================================================================
+
+Once the SQL runs successfully:
+  ✓ Orders can be created
+  ✓ Order items saved
+  ✓ Stock reduced automatically
+  ✓ Confirmation page shows order details
+  ✓ Checkout flow works end-to-end
+
+You can now test:
+  • COD (Cash on Delivery) orders
+  • Razorpay payment flow (if keys added)
+  • Form validation
+  • Database integration
+  • Full checkout experience
+
+================================================================================
+                            NEXT: TEST FLOW
+================================================================================
+
+After this fix works, test the complete checkout:
+
+1. Add products to cart
+2. Click "Proceed to Checkout"
+3. Fill shipping form
+4. Select payment method:
+   - COD: Direct confirmation
+   - Online: Razorpay modal
+5. Place order
+6. See confirmation page
+7. Verify order in database
+
+All should work! ✅
+
+================================================================================
+
+Need help? Check the documentation files:
+  - FIX_ORDER_ERROR_QUICK.md (quick summary)
+  - TROUBLESHOOT_ORDER_ERROR.md (detailed help)
+  - CHECKOUT_GUIDE.md (complete technical guide)
+
+Good luck! 🚀
