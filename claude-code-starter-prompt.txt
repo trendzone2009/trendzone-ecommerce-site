@@ -1,0 +1,315 @@
+# CLAUDE CODE STARTER PROMPT
+# Men's Clothing E-Commerce Platform
+
+Copy and paste this entire prompt into Claude Code terminal to start building.
+
+================================================================================
+
+Build a complete men's clothing e-commerce platform with admin panel that helps an established offline men's clothing store owner expand online and reach customers nationally across India.
+
+## TARGET USER
+- **Primary:** Indian customers (18-45 years) looking to buy men's clothing online
+- **Secondary:** Store owner (Naveen) with existing offline inventory who needs to manage products and orders
+
+## THE ONE PROBLEM IT SOLVES
+Customers cannot browse and buy from the comprehensive offline store inventory online, limiting business to walk-in customers only.
+
+## TECH STACK
+- **Framework:** Next.js 14+ (App Router with TypeScript)
+- **Database:** Supabase (PostgreSQL)
+- **Styling:** Tailwind CSS + shadcn/ui components
+- **Payments:** Razorpay (UPI, Cards, NetBanking, Wallets)
+- **Image Storage:** Supabase Storage
+- **Deployment:** Vercel (free tier)
+- **State Management:** React Context API for cart
+
+## CORE USER LOOPS
+
+### Customer Loop (3 steps):
+1. **Browse** → View products by category, search, filter
+2. **Add to Cart** → Select size, add items, review cart
+3. **Checkout** → Enter address, choose COD or pay online, get order confirmation
+
+### Admin Loop (3 steps):
+1. **Add Products** → Upload product with images, prices, sizes, stock levels
+2. **Manage Orders** → View new orders, update status (pending → processing → shipped → delivered)
+3. **Track Inventory** → Monitor stock levels, get low stock alerts
+
+## MVP FEATURES ONLY
+
+### Frontend (Customer-Facing):
+**Why essential: Must have for customers to shop**
+
+1. **Homepage**
+   - Hero section with category navigation
+   - Featured products grid
+   - 8 main categories: T-Shirts, Shirts, Trousers & Pants, Jeans, Casual Wear, Winter Wear, Ethnic Wear, Accessories
+   - Search bar with text search
+   - Mobile-responsive design
+
+2. **Product Listing Pages**
+   - Grid layout (4 cols desktop, 2 cols mobile)
+   - Product cards with: image, name, price, sizes available
+   - Filters: Category, Price range, Size
+   - Sort: Price low-high/high-low, Newest
+   - Pagination (20 per page)
+
+3. **Product Detail Page**
+   - Image gallery (main + thumbnails)
+   - Product name, price, description
+   - Size selector dropdown (S, M, L, XL, XXL, XXXL)
+   - Stock indicator
+   - Add to Cart button
+   - Size chart modal
+   - Breadcrumb navigation
+
+4. **Shopping Cart**
+   - Cart items list with image, name, size, quantity, price
+   - Update quantity (+/- buttons)
+   - Remove item
+   - Subtotal calculation
+   - Continue shopping / Proceed to checkout buttons
+   - Empty cart state
+
+5. **Checkout Flow (Guest - NO user authentication)**
+   - **Step 1:** Shipping info form (name, phone, email, address, city, state, pincode, landmark)
+   - **Step 2:** Payment method selection (COD radio button / Pay Online radio button)
+   - **Step 3:** Order confirmation page (order number, summary, estimated delivery)
+   - Order summary sidebar throughout checkout
+
+6. **Search & Navigation**
+   - Header with logo, search, cart icon
+   - Category dropdown menu
+   - Footer with policies (Shipping, Returns, Privacy)
+
+### Backend (Admin Panel):
+**Why essential: Owner needs to manage inventory and fulfill orders**
+
+1. **Admin Login**
+   - Simple email/password auth
+   - Session management
+   - Protected admin routes
+
+2. **Dashboard**
+   - Today's stats cards: Total orders, Revenue, Pending orders, Low stock count
+   - Recent orders table (last 10)
+   - Quick action buttons
+
+3. **Product Management**
+   - Products list table: image, name, category, price, stock, status
+   - Add/Edit product form:
+     * Name, category, description
+     * Price, compare_at_price (for showing discounts)
+     * Multi-select sizes with stock qty per size
+     * Image upload (up to 5 images)
+     * Active/Draft status toggle
+   - Search by name, filter by category
+   - Delete product
+
+4. **Order Management**
+   - Orders list table: order#, date, customer, total, payment method, status
+   - Filter by status, payment method, date range
+   - Order detail view:
+     * Customer info (name, phone, email, full address)
+     * Order items with size, quantity, price
+     * Total breakdown
+     * Status update dropdown
+     * Tracking number field
+     * Cancel order button
+
+5. **Inventory View**
+   - Stock levels for all products
+   - Low stock alerts (< 5 items)
+   - Quick stock update interface
+
+6. **Basic Settings**
+   - Store name, contact info
+   - Shipping charge configuration
+   - COD toggle
+   - Admin password change
+
+### Payment Integration:
+**Why essential: Customer needs to pay, and COD is critical for Indian market**
+
+- Razorpay checkout modal for online payments
+- Support UPI, Cards, NetBanking, Wallets
+- COD option (no payment processing)
+- Order creation before payment
+- Payment verification webhook
+- Failed payment handling
+
+### Database Schema (Supabase):
+
+Tables needed:
+1. **categories** - id, name, slug, image_url, sort_order, is_active
+2. **products** - id, name, slug, description, category_id, base_price, compare_at_price, images (JSONB array), is_active, featured
+3. **product_variants** - id, product_id, size, stock_quantity, sku
+4. **orders** - id, order_number (auto-generated: ORD-YYYYMMDD-XXXX), customer_name, customer_email, customer_phone, shipping_address (JSONB), subtotal, shipping_charge, total, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, status, tracking_number, created_at
+5. **order_items** - id, order_id, product_id, product_name (snapshot), product_image, size, quantity, price (at purchase time)
+6. **settings** - id, key, value (JSONB), description
+7. **admin_users** - id, email, password_hash, name, is_active
+
+## EXPLICITLY DO NOT INCLUDE
+
+❌ Customer user accounts and authentication (guest checkout only for MVP)
+❌ Wishlist functionality
+❌ Product reviews and ratings
+❌ Email/SMS notifications (add after launch)
+❌ Advanced search with AI/ML
+❌ Recommendation engine
+❌ Discount codes system
+❌ Loyalty program
+❌ Blog or content management
+❌ Social media integration
+❌ Live chat
+❌ Return management (handle manually for MVP)
+❌ Analytics dashboard (use Vercel analytics)
+❌ Multi-currency
+❌ Internationalization
+
+**Why skip these:** We need to validate that people will buy first. Add these features AFTER getting first 20 orders and based on customer requests. Every extra feature delays launch and learning.
+
+## SPECIFIC REQUIREMENTS
+
+### Indian Market Specifics:
+- **COD is CRITICAL** - Most first-time online buyers prefer COD
+- COD max order: ₹10,000 (configurable)
+- Free shipping above ₹999, else ₹99 flat charge
+- All prices inclusive of taxes
+- Pin code validation for shipping
+
+### Categories & Products:
+- 8 main categories (listed above)
+- Each product can have multiple sizes
+- Track stock per size (e.g., M size: 10 units, L size: 15 units)
+- Products can have up to 5 images
+- Use placeholder images initially (owner will replace with actual photos)
+
+### Order Workflow:
+Customer places order → Admin gets notification → Admin updates status:
+1. Pending (just placed)
+2. Processing (preparing order)
+3. Shipped (dispatched with tracking)
+4. Delivered (marked complete)
+5. Cancelled (if needed)
+
+### Size Standards:
+- T-Shirts/Shirts/Jackets: S, M, L, XL, XXL, XXXL
+- Pants/Jeans/Trousers: 28, 30, 32, 34, 36, 38, 40, 42
+- Accessories: One Size or specific options
+
+### Razorpay Integration Steps:
+1. Create Razorpay account (Test mode for development)
+2. Install razorpay npm package
+3. Create order on backend before payment
+4. Show Razorpay checkout modal on frontend
+5. Verify payment signature on backend via webhook
+6. Update order status based on payment
+7. Handle failed payments gracefully
+
+### Mobile-First Design:
+- All features MUST work perfectly on mobile
+- Touch-friendly buttons (min 44px height)
+- Easy thumb navigation
+- Fast loading (images optimized)
+- Cart icon always visible in header
+
+## SUCCESS CRITERIA
+
+**This MVP is successful when:**
+- Store owner can add 50+ products with images
+- Customer can browse, add to cart, checkout with COD or online payment
+- Order appears in admin panel immediately
+- Owner can update order status
+- Complete purchase flow works on mobile
+- Page loads in < 2 seconds
+- Zero critical bugs
+
+**We'll know it works when:**
+- First 5 orders completed successfully
+- Owner can manage orders without help
+- Customers don't need support to checkout
+- Mobile experience is smooth
+
+## DEVELOPMENT PRIORITIES
+
+**Week 1 (Days 1-7):**
+1. Setup: Next.js + Supabase + Tailwind
+2. Database schema setup
+3. Homepage with category navigation
+4. Product listing pages
+5. Product detail page
+6. Shopping cart functionality
+
+**Week 2 (Days 8-14):**
+7. Checkout flow (guest checkout)
+8. Razorpay integration + COD option
+9. Basic admin panel
+10. Product management (CRUD)
+11. Order management
+12. Deploy to Vercel
+
+## FOCUS ON SHIPPING
+
+- Build the minimum that lets customers buy and owner manage orders
+- Placeholder product images are fine (owner will replace)
+- Basic design is fine (can improve after launch)
+- Don't add features "just in case" - add them when customers ask
+- Deploy to Vercel as soon as core loop works
+- Get real feedback from first customers, then iterate
+
+## FILE STRUCTURE
+
+```
+/
+├── app/
+│   ├── (customer)/          # Customer-facing routes
+│   │   ├── page.tsx         # Homepage
+│   │   ├── products/
+│   │   ├── cart/
+│   │   └── checkout/
+│   ├── (admin)/             # Admin routes
+│   │   ├── dashboard/
+│   │   ├── products/
+│   │   └── orders/
+│   └── api/                 # API routes
+│       ├── products/
+│       ├── orders/
+│       └── payments/
+├── components/
+│   ├── ui/                  # shadcn/ui components
+│   ├── customer/            # Customer components
+│   └── admin/               # Admin components
+├── lib/
+│   ├── supabase.ts          # Supabase client
+│   ├── razorpay.ts          # Razorpay helpers
+│   └── utils.ts
+└── types/
+    └── index.ts             # TypeScript types
+```
+
+## IMPORTANT NOTES
+
+1. **Use Supabase Storage** for product images (1GB free)
+2. **Order number format:** ORD-YYYYMMDD-XXXX (e.g., ORD-20251120-0001)
+3. **Cart state:** Use Context API, persist in localStorage
+4. **Admin auth:** Simple email/password (use bcrypt for hashing)
+5. **Error handling:** Show user-friendly messages, log errors
+6. **Loading states:** Show spinners during API calls
+7. **Form validation:** Use React Hook Form + Zod
+
+## AFTER MVP SHIPS
+
+Once we have 10-20 real orders, add features based on customer feedback:
+- User accounts (if customers request login)
+- Email notifications
+- Wishlist (if customers ask)
+- Product reviews
+- Discount codes
+- Better analytics
+
+**Ship first, validate, then iterate. Don't build features nobody asks for.**
+
+================================================================================
+
+Ready to build this in < 2 weeks. Let's ship fast and learn from real customers!
