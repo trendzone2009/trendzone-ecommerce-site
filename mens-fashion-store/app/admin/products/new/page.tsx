@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Save, ArrowLeft } from 'lucide-react';
+import ImageUploader from '@/components/admin/image-uploader';
 
 const CATEGORIES = [
   'T-Shirts',
@@ -35,6 +36,7 @@ export default function NewProductPage() {
   });
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [stockPerSize, setStockPerSize] = useState<Record<string, number>>({});
+  const [images, setImages] = useState<string[]>([]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -76,6 +78,7 @@ export default function NewProductPage() {
           compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
           sizes: selectedSizes,
           stockPerSize,
+          images,
         }),
       });
 
@@ -227,6 +230,20 @@ export default function NewProductPage() {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Product Images */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Images</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ImageUploader
+              images={images}
+              onImagesChange={setImages}
+              maxImages={5}
+            />
           </CardContent>
         </Card>
 

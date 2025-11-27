@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Save, ArrowLeft, Loader2 } from 'lucide-react';
+import ImageUploader from '@/components/admin/image-uploader';
 
 const CATEGORIES = [
   'T-Shirts',
@@ -29,6 +30,7 @@ interface Product {
   price: number;
   compare_at_price: number | null;
   status: string;
+  images?: string[];
 }
 
 export default function EditProductPage() {
@@ -49,6 +51,7 @@ export default function EditProductPage() {
   });
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [stockPerSize, setStockPerSize] = useState<Record<string, number>>({});
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProduct();
@@ -84,6 +87,11 @@ export default function EditProductPage() {
         });
         setSelectedSizes(sizes);
         setStockPerSize(stock);
+      }
+
+      // Set images
+      if (product.images && Array.isArray(product.images)) {
+        setImages(product.images);
       }
     } catch (err) {
       setError('Failed to load product');
@@ -135,6 +143,7 @@ export default function EditProductPage() {
           compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
           sizes: selectedSizes,
           stockPerSize,
+          images,
         }),
       });
 
@@ -295,6 +304,20 @@ export default function EditProductPage() {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Product Images */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Images</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ImageUploader
+              images={images}
+              onImagesChange={setImages}
+              maxImages={5}
+            />
           </CardContent>
         </Card>
 

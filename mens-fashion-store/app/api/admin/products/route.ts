@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 // GET - Fetch all products
 export async function GET(request: NextRequest) {
   try {
+    // Use admin client to bypass RLS for admin operations
+    const supabase = getSupabaseAdmin();
+    
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
     const category = searchParams.get('category');
@@ -81,6 +84,9 @@ export async function GET(request: NextRequest) {
 // POST - Create new product
 export async function POST(request: NextRequest) {
   try {
+    // Use admin client to bypass RLS for admin operations
+    const supabase = getSupabaseAdmin();
+    
     const body = await request.json();
     const {
       name,
@@ -91,6 +97,7 @@ export async function POST(request: NextRequest) {
       sizes,
       stockPerSize,
       status,
+      images,
     } = body;
 
     // Validate required fields
@@ -131,6 +138,7 @@ export async function POST(request: NextRequest) {
           compare_at_price: compareAtPrice ? parseFloat(compareAtPrice) : null,
           is_active: status === 'active',
           featured: false,
+          images: images || [],
         },
       ])
       .select()
@@ -170,6 +178,9 @@ export async function POST(request: NextRequest) {
 // PUT - Update product
 export async function PUT(request: NextRequest) {
   try {
+    // Use admin client to bypass RLS for admin operations
+    const supabase = getSupabaseAdmin();
+    
     const body = await request.json();
     const {
       productId,
@@ -181,6 +192,7 @@ export async function PUT(request: NextRequest) {
       sizes,
       stockPerSize,
       status,
+      images,
     } = body;
 
     if (!productId) {
@@ -211,6 +223,7 @@ export async function PUT(request: NextRequest) {
         base_price: price ? parseFloat(price) : undefined,
         compare_at_price: compareAtPrice ? parseFloat(compareAtPrice) : null,
         is_active: status === 'active',
+        images: images || [],
         updated_at: new Date().toISOString(),
       })
       .eq('id', productId);
@@ -248,6 +261,9 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete product
 export async function DELETE(request: NextRequest) {
   try {
+    // Use admin client to bypass RLS for admin operations
+    const supabase = getSupabaseAdmin();
+    
     const searchParams = request.nextUrl.searchParams;
     const productId = searchParams.get('id');
 

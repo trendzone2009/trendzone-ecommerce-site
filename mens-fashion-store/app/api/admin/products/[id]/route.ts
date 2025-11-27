@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 // GET - Fetch a single product with variants
 export async function GET(
@@ -7,6 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Use admin client to bypass RLS for admin operations
+    const supabase = getSupabaseAdmin();
+    
     const { id } = await params;
 
     // Fetch product with category
