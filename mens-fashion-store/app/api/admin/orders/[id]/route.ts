@@ -3,10 +3,10 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Fetch order details
     const { data: order, error: orderError } = await supabase
@@ -36,9 +36,17 @@ export async function GET(
       );
     }
 
+    // Transform shipping_address JSONB to flat structure for frontend
+    const shippingAddress = order.shipping_address || {};
+    
     return NextResponse.json({
       order: {
         ...order,
+        // Map shipping_address fields to expected frontend fields
+        customer_address: shippingAddress.addressLine1 || '',
+        city: shippingAddress.city || '',
+        state: shippingAddress.state || '',
+        pincode: shippingAddress.pincode || '',
         items: items || [],
       },
     });

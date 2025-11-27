@@ -12,17 +12,31 @@ export async function GET(request: NextRequest) {
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    let query = supabase.from('products').select('*', { count: 'exact' });
+    // Join with categories to get category name
+    let query = supabase
+      .from('products')
+      .select('*, category:categories(id, name, slug)', { count: 'exact' });
 
     // Apply filters
     if (search) {
       query = query.ilike('name', `%${search}%`);
     }
     if (category && category !== 'all') {
-      query = query.eq('category', category);
+      // Find category ID by name
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('name', category)
+        .single();
+      
+      if (categoryData) {
+        query = query.eq('category_id', categoryData.id);
+      }
     }
     if (status && status !== 'all') {
-      query = query.eq('status', status);
+      // Map status to is_active boolean
+      const isActive = status === 'active';
+      query = query.eq('is_active', isActive);
     }
 
     // Apply pagination
@@ -32,8 +46,25 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // Transform data to match frontend expectations
+    const products = (data || []).map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      category: product.category?.name || 'Uncategorized',
+      category_id: product.category_id,
+      price: product.base_price || 0,
+      compare_at_price: product.compare_at_price,
+      images: product.images,
+      status: product.is_active ? 'active' : 'draft',
+      featured: product.featured,
+      created_at: product.created_at,
+      updated_at: product.updated_at,
+    }));
+
     return NextResponse.json({
-      products: data || [],
+      products,
       total: count || 0,
       page,
       pages: Math.ceil((count || 0) / limit),
@@ -77,17 +108,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create product
+    // Find category ID by name
+    const { data: categoryData } = await supabase
+      .from('categories')
+      .select('id')
+      .ilike('name', category)
+      .single();
+
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    // Create product with correct column names
     const { data: product, error: productError } = await supabase
       .from('products')
       .insert([
         {
           name,
+          slug,
           description: description || null,
-          category,
-          price,
-          compare_at_price: compareAtPrice || null,
-          status: status || 'draft',
+          category_id: categoryData?.id || null,
+          base_price: parseFloat(price),
+          compare_at_price: compareAtPrice ? parseFloat(compareAtPrice) : null,
+          is_active: status === 'active',
+          featured: false,
         },
       ])
       .select()
@@ -147,16 +190,28 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update product
+    // Find category ID by name
+    let categoryId = null;
+    if (category) {
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('name', category)
+        .single();
+      categoryId = categoryData?.id || null;
+    }
+
+    // Update product with correct column names
     const { error: updateError } = await supabase
       .from('products')
       .update({
         name,
         description: description || null,
-        category,
-        price,
-        compare_at_price: compareAtPrice || null,
-        status,
+        category_id: categoryId,
+        base_price: price ? parseFloat(price) : undefined,
+        compare_at_price: compareAtPrice ? parseFloat(compareAtPrice) : null,
+        is_active: status === 'active',
+        updated_at: new Date().toISOString(),
       })
       .eq('id', productId);
 

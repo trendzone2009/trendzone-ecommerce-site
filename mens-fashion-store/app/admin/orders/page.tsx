@@ -12,7 +12,7 @@ interface Order {
   order_number: string;
   customer_name: string;
   customer_email: string;
-  total_amount: number;
+  total: number;
   payment_method: string;
   payment_status: string;
   status: string;
@@ -246,7 +246,7 @@ export default function OrdersPage() {
                           </div>
                         </td>
                         <td className="py-3 px-4 font-medium text-gray-900">
-                          {formatCurrency(order.total_amount)}
+                          {formatCurrency(order.total)}
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex flex-col gap-1">

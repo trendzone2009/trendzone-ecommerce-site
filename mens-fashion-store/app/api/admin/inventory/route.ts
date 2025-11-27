@@ -10,8 +10,10 @@ export async function GET(request: NextRequest) {
     const pageSize = 20;
     const offset = (page - 1) * pageSize;
 
-    // First, fetch products with search filter
-    let productsQuery = supabase.from('products').select('id, name, category, price', { count: 'exact' });
+    // Fetch products with category join
+    let productsQuery = supabase
+      .from('products')
+      .select('id, name, base_price, category:categories(name)', { count: 'exact' });
     
     if (search) {
       productsQuery = productsQuery.ilike('name', `%${search}%`);
@@ -39,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch variants for these products
-    const productIds = products.map(p => p.id);
+    const productIds = products.map((p: any) => p.id);
     const { data: variants, error: variantsError } = await supabase
       .from('product_variants')
       .select('id, product_id, size, stock_quantity')
@@ -48,11 +50,11 @@ export async function GET(request: NextRequest) {
     if (variantsError) {
       console.error('Variants query error:', variantsError);
       // Return products without variant data if variants table doesn't exist
-      const inventory = products.map(product => ({
+      const inventory = products.map((product: any) => ({
         id: product.id,
         name: product.name,
-        category: product.category,
-        price: product.price,
+        category: product.category?.name || 'Uncategorized',
+        price: product.base_price || 0,
         totalStock: 0,
         sizes: [],
       }));
@@ -78,14 +80,14 @@ export async function GET(request: NextRequest) {
     });
 
     // Build inventory with stock info
-    let inventory = products.map(product => {
+    let inventory = products.map((product: any) => {
       const productVariants = variantsByProduct[product.id] || [];
-      const totalStock = productVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+      const totalStock = productVariants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
       return {
         id: product.id,
         name: product.name,
-        category: product.category,
-        price: product.price,
+        category: product.category?.name || 'Uncategorized',
+        price: product.base_price || 0,
         totalStock,
         sizes: productVariants,
       };

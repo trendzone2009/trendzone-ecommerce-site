@@ -24,7 +24,7 @@ interface Order {
   city: string;
   state: string;
   pincode: string;
-  total_amount: number;
+  total: number;
   payment_method: string;
   payment_status: string;
   status: string;
@@ -372,13 +372,13 @@ export default function OrderDetailsPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Shipping:</span>
                 <span className="font-medium text-gray-900">
-                  {formatCurrency(order.total_amount - itemSubtotal)}
+                  {formatCurrency(order.total - itemSubtotal)}
                 </span>
               </div>
               <div className="border-t border-gray-200 pt-3 flex justify-between">
                 <span className="font-semibold text-gray-900">Total:</span>
                 <span className="text-lg font-bold text-blue-600">
-                  {formatCurrency(order.total_amount)}
+                  {formatCurrency(order.total)}
                 </span>
               </div>
             </CardContent>
