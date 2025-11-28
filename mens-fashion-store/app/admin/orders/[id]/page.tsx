@@ -74,22 +74,24 @@ export default function OrderDetailsPage() {
     if (!newStatus || newStatus === order?.status) return;
 
     setIsUpdatingStatus(true);
+    setError('');
     try {
-      const response = await fetch('/api/admin/orders', {
-        method: 'PUT',
+      const response = await fetch(`/api/admin/orders/${order?.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: order?.id,
           status: newStatus,
         }),
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         setOrder((prev) => prev ? { ...prev, status: newStatus } : null);
         setUpdateSuccess(true);
         setTimeout(() => setUpdateSuccess(false), 3000);
       } else {
-        setError('Failed to update order status');
+        setError(data.message || 'Failed to update order status');
       }
     } catch (err) {
       setError('An error occurred while updating status');

@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart, Search, Menu, Loader2 } from 'lucide-react';
+import { ShoppingCart, Search, Menu, Loader2, User, LogOut, Package, MapPin, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/lib/cart-context';
+import { useAuth } from '@/lib/auth-context';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 
@@ -30,19 +31,25 @@ const categories = [
 
 export function Header() {
   const { itemCount } = useCart();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle click outside to close dropdown
+  // Handle click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
       }
     };
 
@@ -202,6 +209,71 @@ export function Header() {
               )}
             </div>
           </form>
+
+          {/* User Menu */}
+          <div className="relative" ref={userMenuRef}>
+            {user ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="relative"
+              >
+                <User className="h-6 w-6" />
+              </Button>
+            ) : (
+              <Link href="/login">
+                <Button variant="ghost" size="sm">
+                  Login
+                </Button>
+              </Link>
+            )}
+
+            {/* User Dropdown Menu */}
+            {user && showUserMenu && (
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white border rounded-lg shadow-lg py-2 z-50">
+                <div className="px-4 py-3 border-b">
+                  <p className="text-sm font-medium text-gray-900">{user.name || 'User'}</p>
+                  <p className="text-xs text-gray-600 truncate">{user.email}</p>
+                </div>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <Settings className="w-4 h-4" />
+                  My Profile
+                </Link>
+                <Link
+                  href="/orders"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <Package className="w-4 h-4" />
+                  My Orders
+                </Link>
+                <Link
+                  href="/addresses"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <MapPin className="w-4 h-4" />
+                  Saved Addresses
+                </Link>
+                <button
+                  onClick={async () => {
+                    await logout();
+                    setShowUserMenu(false);
+                    window.location.href = '/';
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t mt-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Cart Button */}
           <Link href="/cart">

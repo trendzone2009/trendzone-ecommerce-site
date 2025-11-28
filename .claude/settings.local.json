@@ -10,7 +10,8 @@
       "Bash(ls:*)",
       "Bash(tree:*)",
       "Bash(find:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(del \"app\\api\\saved-addresses\\route.ts\")"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 interface OrderRequest {
   items: Array<{
@@ -138,6 +139,31 @@ export async function POST(request: NextRequest) {
           .update({ stock_quantity: newStock })
           .eq('id', variant.id);
       }
+    }
+
+    // Send order confirmation email
+    try {
+      await sendOrderConfirmationEmail({
+        orderNumber: order.order_number,
+        customerName: body.shippingAddress.name,
+        customerEmail: body.shippingAddress.email,
+        items: body.items.map(item => ({
+          name: item.name,
+          size: item.size,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+        })),
+        shippingAddress: body.shippingAddress,
+        subtotal: body.subtotal,
+        shippingCharge: body.shippingCharge,
+        total: body.total,
+        paymentMethod: body.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment',
+      });
+      console.log('Order confirmation email sent successfully');
+    } catch (emailError) {
+      // Don't fail the order if email fails
+      console.error('Failed to send order confirmation email:', emailError);
     }
 
     return NextResponse.json({

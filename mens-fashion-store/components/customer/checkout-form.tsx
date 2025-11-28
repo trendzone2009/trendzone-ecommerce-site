@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Loader2, MapPin, Plus, Trash2, Edit2, Check, Home, Briefcase } from 'lucide-react';
 import { SavedAddress } from '@/types';
+import { useAuth } from '@/lib/auth-context';
 
 interface CheckoutFormProps {
   onSubmit: (data: ShippingAddressFormData, paymentMethod: string) => Promise<void>;
@@ -18,6 +19,7 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFormProps) {
+  const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD');
   const [error, setError] = useState<string>('');
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -26,7 +28,6 @@ export function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFormProps)
   const [saveAddress, setSaveAddress] = useState(false);
   const [addressLabel, setAddressLabel] = useState<'Home' | 'Work' | 'Other'>('Home');
   const [loadingAddresses, setLoadingAddresses] = useState(true);
-  const [userIdentifier, setUserIdentifier] = useState<string>('');
 
   const {
     register,
@@ -38,27 +39,22 @@ export function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFormProps)
     resolver: zodResolver(shippingAddressSchema),
   });
 
-  // Get or create user identifier from localStorage
-  useEffect(() => {
-    let identifier = localStorage.getItem('userIdentifier');
-    if (!identifier) {
-      identifier = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('userIdentifier', identifier);
-    }
-    setUserIdentifier(identifier);
-  }, []);
-
-  // Fetch saved addresses
+  // Fetch saved addresses for logged-in users
   useEffect(() => {
     const fetchAddresses = async () => {
-      if (!userIdentifier) return;
-      
+      // Only fetch if user is logged in
+      if (!user) {
+        setLoadingAddresses(false);
+        setShowNewAddressForm(true);
+        return;
+      }
+
       try {
-        const response = await fetch(`/api/addresses?userIdentifier=${encodeURIComponent(userIdentifier)}`);
+        const response = await fetch('/api/saved-addresses');
         if (response.ok) {
           const data = await response.json();
           setSavedAddresses(data);
-          
+
           // Auto-select default address
           const defaultAddr = data.find((addr: SavedAddress) => addr.is_default);
           if (defaultAddr) {
@@ -76,11 +72,12 @@ export function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFormProps)
     };
 
     fetchAddresses();
-  }, [userIdentifier]);
+  }, [user]);
 
   const fillFormWithAddress = (address: SavedAddress) => {
     setValue('name', address.name);
-    setValue('email', address.email);
+    // For saved_addresses table, we need to get email from user context
+    setValue('email', user?.email || '');
     setValue('phone', address.phone);
     setValue('addressLine1', address.address_line1);
     setValue('addressLine2', address.address_line2 || '');
@@ -106,7 +103,7 @@ export function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFormProps)
     if (!confirm('Are you sure you want to delete this address?')) return;
 
     try {
-      const response = await fetch(`/api/addresses/${addressId}`, {
+      const response = await fetch(`/api/saved-addresses/${addressId}`, {
         method: 'DELETE',
       });
 
@@ -125,17 +122,15 @@ export function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFormProps)
 
   const handleFormSubmit = async (data: ShippingAddressFormData) => {
     setError('');
-    
+
     try {
-      // Save new address if checkbox is checked
-      if (saveAddress && showNewAddressForm && userIdentifier) {
-        const addressResponse = await fetch('/api/addresses', {
+      // Save new address if checkbox is checked and user is logged in
+      if (saveAddress && showNewAddressForm && user) {
+        const addressResponse = await fetch('/api/saved-addresses', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userIdentifier,
             name: data.name,
-            email: data.email,
             phone: data.phone,
             addressLine1: data.addressLine1,
             addressLine2: data.addressLine2,
